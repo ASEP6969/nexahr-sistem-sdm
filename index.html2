@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexaHR - Sistem Manajemen SDM</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+tailwind.config={theme:{extend:{fontFamily:{sans:['Plus Jakarta Sans','sans-serif']},colors:{primary:{50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},dark:{800:'#1e293b',900:'#0f172a',950:'#020617'}}}}}
+</script>
+<style>
+:root{--bg:#f1f5f9;--fg:#0f172a;--muted:#64748b;--accent:#14b8a6;--card:#fff;--border:#e2e8f0;--sidebar:#0f172a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--fg)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse-ring{0%{transform:scale(.9);opacity:.7}100%{transform:scale(1.5);opacity:0}}
+@keyframes float1{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(30px,-20px) rotate(10deg)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,30px)}}
+.anim-fade{animation:fadeIn .45s ease-out both}.anim-slide{animation:slideInRight .4s ease-out both}.anim-scale{animation:scaleIn .3s ease-out both}
+.login-bg{background:linear-gradient(135deg,#0f172a 0%,#134e4a 50%,#0f766e 100%);min-height:100vh;position:relative;overflow:hidden}
+.login-bg::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 25% 40%,rgba(20,184,166,.18) 0%,transparent 50%),radial-gradient(circle at 75% 70%,rgba(45,212,191,.12) 0%,transparent 40%);animation:float2 12s ease-in-out infinite}
+.login-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.25}
+.sidebar{width:260px;background:var(--sidebar);height:100vh;position:fixed;left:0;top:0;z-index:40;transition:transform .3s ease;display:flex;flex-direction:column}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:#94a3b8;border-radius:10px;margin:2px 12px;cursor:pointer;transition:all .2s;font-size:14px;font-weight:500;user-select:none}
+.nav-item:hover{background:#1e293b;color:#e2e8f0}
+.nav-item.active{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;box-shadow:0 4px 15px rgba(20,184,166,.35)}
+.main-content{margin-left:260px;min-height:100vh;transition:margin-left .3s}
+.stat-card{background:var(--card);border-radius:16px;padding:24px;border:1px solid var(--border);transition:all .3s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.07)}
+.data-table{width:100%;border-collapse:separate;border-spacing:0}
+.data-table th{background:#f8fafc;padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--border)}
+.data-table td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tbody tr{transition:background .15s}.data-table tbody tr:hover td{background:#f8fafc}
+.badge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.badge-success{background:#dcfce7;color:#166534}.badge-warning{background:#fef3c7;color:#92400e}.badge-danger{background:#fee2e2;color:#991b1b}.badge-info{background:#ccfbf1;color:#115e59}.badge-gray{background:#f1f5f9;color:#475569}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;box-shadow:0 4px 14px rgba(20,184,166,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(20,184,166,.4)}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-success{background:#059669;color:#fff}.btn-success:hover{background:#047857}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--fg)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.form-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;transition:all .2s;background:#fff;color:var(--fg)}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(20,184,166,.12)}
+.form-label{display:block;font-size:13px;font-weight:600;color:#475569;margin-bottom:6px}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal-box{background:#fff;border-radius:16px;padding:28px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto;transform:scale(.92);transition:transform .25s}
+.modal-overlay.active .modal-box{transform:scale(1)}
+.toast-container{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{padding:14px 20px;border-radius:12px;font-size:13.5px;font-weight:500;color:#fff;min-width:300px;box-shadow:0 8px 30px rgba(0,0,0,.18);animation:slideInRight .35s ease-out;display:flex;align-items:center;gap:10px;pointer-events:auto}
+.toast-success{background:linear-gradient(135deg,#059669,#10b981)}.toast-error{background:linear-gradient(135deg,#dc2626,#ef4444)}.toast-info{background:linear-gradient(135deg,#0d9488,#14b8a6)}
+.clock-display{font-size:56px;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,#0f766e,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.clock-pulse{position:relative}.clock-pulse::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:3px solid rgba(20,184,166,.3);animation:pulse-ring 2s ease-out infinite}
+.avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main-content{margin-left:0}.clock-display{font-size:40px}}
+</style>
+</head>
+<body>
+
+<!-- HALAMAN LOGIN -->
+<div id="loginPage" class="login-bg flex items-center justify-center p-4">
+  <div class="login-orb w-72 h-72 bg-teal-400" style="top:10%;left:5%;animation:float1 10s ease-in-out infinite"></div>
+  <div class="login-orb w-56 h-56 bg-emerald-500" style="bottom:15%;right:10%;animation:float2 8s ease-in-out infinite"></div>
+  <div class="relative z-10 w-full max-w-md">
+    <div class="text-center mb-8 anim-fade">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-600 mb-4 shadow-lg shadow-teal-500/30">
+        <i class="fa-solid fa-people-group text-white text-2xl"></i>
+      </div>
+      <h1 class="text-3xl font-900 text-white tracking-tight">NexaHR</h1>
+      <p class="text-teal-200/70 text-sm mt-1">Sistem Manajemen Sumber Daya Manusia</p>
+    </div>
+    <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl anim-fade" style="animation-delay:.1s">
+      <h2 class="text-white text-lg font-700 mb-6">Masuk ke akun Anda</h2>
+      <div class="mb-4">
+        <label class="block text-teal-100/80 text-xs font-600 mb-2 uppercase tracking-wider">Email</label>
+        <div class="relative">
+          <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-teal-300/50 text-sm"></i>
+          <input id="loginEmail" type="email" class="w-full bg-white/10 border border-white/15 rounded-xl py-3 pl-11 pr-4 text-white placeholder-teal-200/30 text-sm focus:outline-none focus:border-teal-400/50 focus:bg-white/15 transition" placeholder="nama@company.com">
+        </div>
+      </div>
+      <div class="mb-6">
+        <label class="block text-teal-100/80 text-xs font-600 mb-2 uppercase tracking-wider">Password</label>
+        <div class="relative">
+          <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-teal-300/50 text-sm"></i>
+          <input id="loginPass" type="password" class="w-full bg-white/10 border border-white/15 rounded-xl py-3 pl-11 pr-4 text-white placeholder-teal-200/30 text-sm focus:outline-none focus:border-teal-400/50 focus:bg-white/15 transition" placeholder="Masukkan password">
+        </div>
+      </div>
+      <button id="loginBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-700 text-sm hover:shadow-lg hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all active:scale-[.98]">Masuk</button>
+      <div id="loginError" class="mt-3 text-red-300 text-xs text-center hidden"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" class="hidden">
+  <aside id="sidebar" class="sidebar">
+    <div class="px-6 py-5 flex items-center gap-3 border-b border-white/5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+        <i class="fa-solid fa-people-group text-white text-sm"></i>
+      </div>
+      <div><div class="text-white font-800 text-base tracking-tight">NexaHR</div><div class="text-slate-500 text-[10px] font-500">Human Resources</div></div>
+    </div>
+    <nav id="sidebarNav" class="flex-1 py-4 overflow-y-auto"></nav>
+    <div id="sidebarUser" class="p-4 border-t border-white/5"></div>
+  </aside>
+  <div class="main-content">
+    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200/60 px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button id="menuToggle" class="md:hidden w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition"><i class="fa-solid fa-bars text-sm"></i></button>
+        <h2 id="pageTitle" class="text-lg font-700 text-slate-800"></h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="headerDate" class="text-xs text-slate-400 font-500 hidden sm:block"></span>
+        <button id="logoutBtn" class="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-500 transition" title="Keluar"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </header>
+    <main id="mainContent" class="p-6"></main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)hideModal()">
+  <div id="modalBox" class="modal-box"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+/* =============================================
+   DATA DEFAULT
+============================================= */
+const DEFAULT_USERS = [
+  {id:1,nama:'Admin HR',email:'admin@company.com',password:'admin123',role:'admin',jabatan:'HR Manager',departemen:'HRD',gaji_pokok:15000000,atasan_id:null,sisa_cuti:12},
+  {id:2,nama:'Budi Santoso',email:'budi@company.com',password:'budi123',role:'karyawan',jabatan:'Frontend Developer',departemen:'Teknologi',gaji_pokok:10000000,atasan_id:3,sisa_cuti:12},
+  {id:3,nama:'Andi Pratama',email:'andi@company.com',password:'andi123',role:'atasan',jabatan:'Tech Lead',departemen:'Teknologi',gaji_pokok:18000000,atasan_id:null,sisa_cuti:12},
+  {id:4,nama:'Siti Rahayu',email:'siti@company.com',password:'siti123',role:'karyawan',jabatan:'UI/UX Designer',departemen:'Desain',gaji_pokok:11000000,atasan_id:6,sisa_cuti:12},
+  {id:5,nama:'Dewi Lestari',email:'dewi@company.com',password:'dewi123',role:'karyawan',jabatan:'Backend Developer',departemen:'Teknologi',gaji_pokok:12000000,atasan_id:3,sisa_cuti:12},
+  {id:6,nama:'Rudi Hermawan',email:'rudi@company.com',password:'rudi123',role:'atasan',jabatan:'Design Manager',departemen:'Desain',gaji_pokok:16000000,atasan_id:null,sisa_cuti:12},
+  {id:7,nama:'Maya Putri',email:'maya@company.com',password:'maya123',role:'karyawan',jabatan:'QA Engineer',departemen:'Teknologi',gaji_pokok:9500000,atasan_id:3,sisa_cuti:12},
+  {id:8,nama:'Fajar Nugroho',email:'fajar@company.com',password:'fajar123',role:'karyawan',jabatan:'Marketing Staff',departemen:'Marketing',gaji_pokok:8500000,atasan_id:9,sisa_cuti:12},
+  {id:9,nama:'Hendra Wijaya',email:'hendra@company.com',password:'hendra123',role:'atasan',jabatan:'Marketing Manager',departemen:'Marketing',gaji_pokok:17000000,atasan_id:null,sisa_cuti:12},
+  {id:10,nama:'Lina Marlina',email:'lina@company.com',password:'lina123',role:'karyawan',jabatan:'Akuntan',departemen:'Keuangan',gaji_pokok:10500000,atasan_id:1,sisa_cuti:12},
+];
+
+const AVATAR_COLORS = ['#0d9488','#7c3aed','#db2777','#ea580c','#2563eb','#059669','#d97706','#6366f1','#e11d48','#0891b2'];
+
+/* =============================================
+   UTILITAS
+============================================= */
+function getToday(){return new Date().toISOString().split('T')[0]}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r.toISOString().split('T')[0]}
+function fmtCurrency(n){return'Rp '+Math.round(n).toLocaleString('id-ID')}
+function fmtDate(s){if(!s)return'-';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}
+function fmtTime(s){if(!s||s==='-')return'-';return s}
+function fmtDateTime(d){return d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function daysBetween(a,b){return Math.max(1,Math.ceil((new Date(b)-new Date(a))/(86400000))+1)}
+function avatarColor(id){return AVATAR_COLORS[id%AVATAR_COLORS.length]}
+function avatarHTML(u,size='w-9 h-9 text-sm'){return`<div class="avatar ${size}" style="background:${avatarColor(u.id)}">${u.nama.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`}
+function greeting(){const h=new Date().getHours();return h<11?'Selamat Pagi':h<15?'Selamat Siang':h<18?'Selamat Sore':'Selamat Malam'}
+function roleLabel(r){return{admin:'Administrator',karyawan:'Karyawan',atasan:'Atasan'}[r]||r}
+
+/* =============================================
+   STATE & DATA
+============================================= */
+let data={users:[],absensi:[],cuti:[],penggajian:[]};
+let currentUser=null;
+let currentPage='dashboard';
+let chartInstance=null;
+
+function loadData(){
+  const s=localStorage.getItem('nexahr_v2');
+  if(s){data=JSON.parse(s);return}
+  data.users=JSON.parse(JSON.stringify(DEFAULT_USERS));
+  data.absensi=genSampleAbsensi();
+  data.cuti=genSampleCuti();
+  saveData();
+}
+function saveData(){localStorage.setItem('nexahr_v2',JSON.stringify(data))}
+
+function genSampleAbsensi(){
+  const arr=[];let id=1;const today=new Date();
+  for(let d=7;d>=1;d--){
+    const dt=new Date(today);dt.setDate(dt.getDate()-d);
+    if(dt.getDay()===0||dt.getDay()===6)continue;
+    const ds=dt.toISOString().split('T')[0];
+    data.users.forEach(u=>{
+      if(u.role==='admin')return;
+      const r=Math.random();
+      if(r>.12){
+        const late=r>.72;
+        const jm=late?`0${8+Math.floor(Math.random()*2)}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`:`07:${String(15+Math.floor(Math.random()*45)).padStart(2,'0')}`;
+        const jk=`${16+Math.floor(Math.random()*3)}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`;
+        arr.push({id:id++,user_id:u.id,tanggal:ds,jam_masuk:jm,jam_keluar:jk,status:late?'terlambat':'hadir'});
+      }else if(r>.04){arr.push({id:id++,user_id:u.id,tanggal:ds,jam_masuk:'-',jam_keluar:'-',status:'alpha'})}
+    });
+  }
+  return arr;
+}
+function genSampleCuti(){
+  const td=getToday();
+  return[
+    {id:1,user_id:2,jenis:'Cuti Tahunan',tgl_mulai:addDays(td,-10),tgl_selesai:addDays(td,-8),alasan:'Acara keluarga di luar kota',status:'disetujui',approved_by:3,catatan:'Disetujui'},
+    {id:2,user_id:4,jenis:'Izin Sakit',tgl_mulai:td,tgl_selesai:td,alasan:'Demam tinggi, perlu istirahat',status:'pending',approved_by:null,catatan:''},
+    {id:3,user_id:5,jenis:'Cuti Tahunan',tgl_mulai:addDays(td,3),tgl_selesai:addDays(td,5),alasan:'Liburan ke Bandung bersama keluarga',status:'pending',approved_by:null,catatan:''},
+    {id:4,user_id:8,jenis:'Izin Pribadi',tgl_mulai:addDays(td,1),tgl_selesai:addDays(td,1),alasan:'Mengurus perpanjangan SIM',status:'pending',approved_by:null,catatan:''},
+    {id:5,user_id:7,jenis:'Cuti Tahunan',tgl_mulai:addDays(td,-20),tgl_selesai:addDays(td,-19),alasan:'Ulang tahun anak',status:'disetujui',approved_by:3,catatan:''},
+  ];
+}
+
+/* =============================================
+   AUTENTIKASI
+============================================= */
+document.getElementById('loginBtn').addEventListener('click',doLogin);
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginError');
+  const user=data.users.find(u=>u.email===email&&u.password===pass);
+  if(!user){err.textContent='Email atau password salah. Silakan coba lagi.';err.classList.remove('hidden');return}
+  err.classList.add('hidden');
+  currentUser=user;
+  sessionStorage.setItem('nexahr_session',user.id);
+  showApp();
+}
+function logout(){
+  currentUser=null;sessionStorage.removeItem('nexahr_session');
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginEmail').value='';document.getElementById('loginPass').value='';
+}
+
+/* =============================================
+   NAVIGASI
+============================================= */
+const NAV_ITEMS={
+  admin:[
+    {id:'dashboard',icon:'fa-chart-pie',label:'Dashboard'},
+    {id:'karyawan',icon:'fa-users',label:'Data Karyawan'},
+    {id:'absensi',icon:'fa-clock',label:'Absensi'},
+    {id:'cuti',icon:'fa-calendar-check',label:'Cuti & Izin'},
+    {id:'penggajian',icon:'fa-wallet',label:'Penggajian'},
+  ],
+  karyawan:[
+    {id:'dashboard',icon:'fa-chart-pie',label:'Dashboard'},
+    {id:'absensi',icon:'fa-clock',label:'Absensi Saya'},
+    {id:'cuti',icon:'fa-calendar-check',label:'Cuti & Izin'},
+    {id:'penggajian',icon:'fa-wallet',label:'Slip Gaji'},
+  ],
+  atasan:[
+    {id:'dashboard',icon:'fa-chart-pie',label:'Dashboard'},
+    {id:'absensi',icon:'fa-clock',label:'Absensi Tim'},
+    {id:'cuti',icon:'fa-calendar-check',label:'Persetujuan Cuti'},
+    {id:'penggajian',icon:'fa-wallet',label:'Slip Gaji'},
+  ]
+};
+
+function navigate(page){currentPage=page;renderApp()}
+document.getElementById('logoutBtn').addEventListener('click',logout);
+document.getElementById('menuToggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+
+/* =============================================
+   RENDER UTAMA
+============================================= */
+function showApp(){
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  currentPage='dashboard';
+  renderApp();
+}
+
+function renderApp(){
+  renderSidebar();renderHeader();
+  const c=document.getElementById('mainContent');
+  if(chartInstance){chartInstance.destroy();chartInstance=null}
+  switch(currentPage){
+    case'dashboard':renderDashboard(c);break;
+    case'absensi':renderAbsensi(c);break;
+    case'cuti':renderCuti(c);break;
+    case'penggajian':renderPenggajian(c);break;
+    case'karyawan':renderKaryawan(c);break;
+  }
+}
+
+function renderSidebar(){
+  const nav=document.getElementById('sidebarNav');
+  const items=NAV_ITEMS[currentUser.role]||[];
+  nav.innerHTML=items.map(it=>`<div class="nav-item ${currentPage===it.id?'active':''}" onclick="navigate('${it.id}')"><i class="fa-solid ${it.icon} w-5 text-center"></i><span>${it.label}</span></div>`).join('');
+  const u=document.getElementById('sidebarUser');
+  u.innerHTML=`<div class="flex items-center gap-3"><div class="avatar w-9 h-9 text-xs" style="background:${avatarColor(currentUser.id)}">${currentUser.nama.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div class="flex-1 min-w-0"><div class="text-white text-sm font-600 truncate">${currentUser.nama}</div><div class="text-slate-500 text-[11px]">${roleLabel(currentUser.role)}</div></div></div>`;
+}
+function renderHeader(){
+  const items=NAV_ITEMS[currentUser.role]||[];
+  const cur=items.find(i=>i.id===currentPage);
+  document.getElementById('pageTitle').textContent=cur?cur.label:'';
+  document.getElementById('headerDate').textContent=fmtDateTime(new Date());
+}
+
+/* =============================================
+   DASHBOARD
+============================================= */
+function renderDashboard(c){
+  const u=currentUser;const td=getToday();
+  const karyawanList=data.users.filter(x=>x.role==='karyawan'||x.role==='atasan');
+  const hadirHariIni=data.absensi.filter(a=>a.tanggal===td&&a.status!=='alpha').length;
+  const cutiPending=data.cuti.filter(x=>x.status==='pending').length;
+
+  let statsHTML='';
+  if(u.role==='admin'){
+    const totalGaji=karyawanList.reduce((s,x)=>s+x.gaji_pokok,0);
+    statsHTML=`
+      <div class="stat-card anim-fade"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center"><i class="fa-solid fa-users text-teal-600"></i></div><span class="badge badge-info">Aktif</span></div><div class="text-2xl font-800">${karyawanList.length}</div><div class="text-slate-400 text-sm mt-1">Total Karyawan</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.05s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-user-check text-emerald-600"></i></div><span class="badge badge-success">Hadir</span></div><div class="text-2xl font-800">${hadirHariIni}</div><div class="text-slate-400 text-sm mt-1">Hadir Hari Ini</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.1s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center"><i class="fa-solid fa-hourglass-half text-amber-600"></i></div><span class="badge badge-warning">Pending</span></div><div class="text-2xl font-800">${cutiPending}</div><div class="text-slate-400 text-sm mt-1">Cuti Menunggu</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.15s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center"><i class="fa-solid fa-wallet text-rose-500"></i></div></div><div class="text-xl font-800">${fmtCurrency(totalGaji)}</div><div class="text-slate-400 text-sm mt-1">Total Gaji/Bulan</div></div>`;
+  }else if(u.role==='karyawan'){
+    const myToday=data.absensi.find(a=>a.user_id===u.id&&a.tanggal===td);
+    statsHTML=`
+      <div class="stat-card anim-fade"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center"><i class="fa-solid fa-sun text-teal-600"></i></div></div><div class="text-3xl font-900">${greeting()}!</div><div class="text-slate-400 text-sm mt-1">${u.nama}</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.05s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-right-to-bracket text-emerald-600"></i></div><span class="badge ${myToday&&myToday.jam_masuk!=='-'?'badge-success':'badge-gray'}">${myToday&&myToday.jam_masuk!=='-'?myToday.jam_masuk:'Belum'}</span></div><div class="text-2xl font-800">${myToday?myToday.jam_keluar!=='-'?'Selesai':'Bekerja':'Belum Absen'}</div><div class="text-slate-400 text-sm mt-1">Status Hari Ini</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.1s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center"><i class="fa-solid fa-umbrella-beach text-amber-600"></i></div></div><div class="text-2xl font-800">${u.sisa_cuti}</div><div class="text-slate-400 text-sm mt-1">Sisa Cuti Tahunan</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.15s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center"><i class="fa-solid fa-money-bill-wave text-rose-500"></i></div></div><div class="text-xl font-800">${fmtCurrency(u.gaji_pokok*1.2)}</div><div class="text-slate-400 text-sm mt-1">Estimasi Gaji</div></div>`;
+  }else{
+    const bawahan=karyawanList.filter(x=>x.atasan_id===u.id);
+    const hadirBawahan=data.absensi.filter(a=>a.tanggal===td&&bawahan.some(b=>b.id===a.user_id)&&a.status!=='alpha').length;
+    const pendingCuti=data.cuti.filter(x=>x.status==='pending'&&bawahan.some(b=>b.id===x.user_id)).length;
+    statsHTML=`
+      <div class="stat-card anim-fade"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-teal-50 flex items-center justify-center"><i class="fa-solid fa-people-group text-teal-600"></i></div></div><div class="text-2xl font-800">${bawahan.length}</div><div class="text-slate-400 text-sm mt-1">Total Bawahan</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.05s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-user-check text-emerald-600"></i></div><span class="badge badge-success">${bawahan.length?Math.round(hadirBawahan/bawahan.length*100):0}%</span></div><div class="text-2xl font-800">${hadirBawahan}</div><div class="text-slate-400 text-sm mt-1">Hadir Hari Ini</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.1s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center"><i class="fa-solid fa-clock-rotate-left text-amber-600"></i></div><span class="badge badge-warning">${pendingCuti}</span></div><div class="text-2xl font-800">${pendingCuti}</div><div class="text-slate-400 text-sm mt-1">Cuti Perlu Approval</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.15s"><div class="flex items-center justify-between mb-3"><div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center"><i class="fa-solid fa-money-bill-wave text-rose-500"></i></div></div><div class="text-xl font-800">${fmtCurrency(u.gaji_pokok*1.2)}</div><div class="text-slate-400 text-sm mt-1">Estimasi Gaji</div></div>`;
+  }
+
+  const last7=[];const hadirArr=[];const terlambatArr=[];const alphaArr=[];
+  for(let i=6;i>=0;i--){
+    const dt=new Date();dt.setDate(dt.getDate()-i);
+    if(dt.getDay()===0||dt.getDay()===6)continue;
+    const ds=dt.toISOString().split('T')[0];
+    const label=dt.toLocaleDateString('id-ID',{weekday:'short',day:'numeric'});
+    last7.push(label);
+    let targetAbs=data.absensi.filter(a=>a.tanggal===ds);
+    if(u.role==='atasan'){const bw=karyawanList.filter(x=>x.atasan_id===u.id);targetAbs=targetAbs.filter(a=>bw.some(b=>b.id===a.user_id))}
+    else if(u.role==='karyawan'){targetAbs=targetAbs.filter(a=>a.user_id===u.id)}
+    hadirArr.push(targetAbs.filter(a=>a.status==='hadir').length);
+    terlambatArr.push(targetAbs.filter(a=>a.status==='terlambat').length);
+    alphaArr.push(targetAbs.filter(a=>a.status==='alpha').length);
+  }
+
+  let acts=[];
+  data.cuti.slice().sort((a,b)=>b.id-a.id).slice(0,3).forEach(cr=>{
+    const usr=data.users.find(x=>x.id===cr.user_id);
+    acts.push({icon:'fa-calendar-check',color:'text-amber-500',bg:'bg-amber-50',text:`${usr?usr.nama:'-'} mengajukan ${cr.jenis}`,time:fmtDate(cr.tgl_mulai)});
+  });
+  data.absensi.slice().sort((a,b)=>b.id-a.id).slice(0,3).forEach(ab=>{
+    const usr=data.users.find(x=>x.id===ab.user_id);
+    acts.push({icon:'fa-clock',color:'text-teal-600',bg:'bg-teal-50',text:`${usr?usr.nama:'-'} absen ${ab.status}`,time:fmtDate(ab.tanggal)});
+  });
+
+  c.innerHTML=`
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">${statsHTML}</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.2s">
+        <h3 class="font-700 text-sm text-slate-700 mb-4">Tren Kehadiran 7 Hari Terakhir</h3>
+        <canvas id="dashChart" height="200"></canvas>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.25s">
+        <h3 class="font-700 text-sm text-slate-700 mb-4">Aktivitas Terbaru</h3>
+        <div class="space-y-3">${acts.length?acts.map(a=>`<div class="flex items-start gap-3"><div class="w-8 h-8 rounded-lg ${a.bg} flex items-center justify-center flex-shrink-0"><i class="fa-solid ${a.icon} ${a.color} text-xs"></i></div><div class="flex-1 min-w-0"><div class="text-xs font-500 text-slate-700 leading-tight">${a.text}</div><div class="text-[11px] text-slate-400 mt-0.5">${a.time}</div></div></div>`).join(''):'<p class="text-sm text-slate-400">Belum ada aktivitas</p>'}</div>
+      </div>
+    </div>`;
+
+  setTimeout(()=>{
+    const ctx=document.getElementById('dashChart');
+    if(!ctx)return;
+    chartInstance=new Chart(ctx,{type:'bar',data:{labels:last7,datasets:[
+      {label:'Hadir',data:hadirArr,backgroundColor:'#14b8a6',borderRadius:6,barPercentage:.6},
+      {label:'Terlambat',data:terlambatArr,backgroundColor:'#f59e0b',borderRadius:6,barPercentage:.6},
+      {label:'Alpha',data:alphaArr,backgroundColor:'#ef4444',borderRadius:6,barPercentage:.6},
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:16,font:{size:11,family:'Plus Jakarta Sans'}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11,family:'Plus Jakarta Sans'}}},y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11,family:'Plus Jakarta Sans'}},grid:{color:'#f1f5f9'}}}}});
+  },50);
+}
+
+/* =============================================
+   ABSENSI
+============================================= */
+function renderAbsensi(c){
+  const u=currentUser;const td=getToday();
+  if(u.role==='karyawan') return renderAbsensiKaryawan(c,td);
+  if(u.role==='atasan') return renderAbsensiAtasan(c,td);
+  return renderAbsensiAdmin(c,td);
+}
+
+function renderAbsensiKaryawan(c,td){
+  const myToday=data.absensi.find(a=>a.user_id===u.id&&a.tanggal===td);
+  const clockedIn=myToday&&myToday.jam_masuk!=='-';
+  const clockedOut=myToday&&myToday.jam_keluar!=='-';
+  const timeStr=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const myHistory=data.absensi.filter(a=>a.user_id===u.id).sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
+
+  c.innerHTML=`
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center mb-6 anim-fade">
+        <p class="text-slate-400 text-sm mb-2">${fmtDateTime(new Date())}</p>
+        <div class="flex justify-center mb-6"><div class="clock-pulse inline-block"><div id="liveClock" class="clock-display">${timeStr}</div></div></div>
+        <div class="mb-4">
+          ${clockedOut?'<span class="badge badge-success text-sm px-5 py-2"><i class="fa-solid fa-circle-check mr-2"></i>Absensi Selesai</span>':
+            clockedIn?'<span class="badge badge-info text-sm px-5 py-2"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Sedang Bekerja — Masuk '+myToday.jam_masuk+'</span>':
+            '<span class="badge badge-gray text-sm px-5 py-2">Belum Absen Masuk</span>'}
+        </div>
+        <div class="flex justify-center gap-3">
+          ${!clockedIn?`<button class="btn btn-primary text-base px-8 py-3" onclick="doClockIn()"><i class="fa-solid fa-right-to-bracket"></i>Clock In</button>`:''}
+          ${clockedIn&&!clockedOut?`<button class="btn btn-danger text-base px-8 py-3" onclick="doClockOut()"><i class="fa-solid fa-right-from-bracket"></i>Clock Out</button>`:''}
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.1s">
+        <h3 class="font-700 text-sm text-slate-700 mb-4">Riwayat Kehadiran</h3>
+        <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Tanggal</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Status</th></tr></thead>
+        <tbody>${myHistory.length?myHistory.map(a=>`<tr><td>${fmtDate(a.tanggal)}</td><td>${fmtTime(a.jam_masuk)}</td><td>${fmtTime(a.jam_keluar)}</td><td><span class="badge ${a.status==='hadir'?'badge-success':a.status==='terlambat'?'badge-warning':'badge-danger'}">${a.status==='hadir'?'Hadir':a.status==='terlambat'?'Terlambat':'Alpha'}</span></td></tr>`).join(''):'<tr><td colspan="4" class="text-center text-slate-400 py-8">Belum ada data</td></tr>'}</tbody></table></div>
+      </div>
+    </div>`;
+  clearInterval(window._clockInt);
+  window._clockInt=setInterval(()=>{const el=document.getElementById('liveClock');if(el)el.textContent=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},1000);
+}
+
+function renderAbsensiAtasan(c,td){
+  const bawahan=data.users.filter(x=>x.atasan_id===u.id);
+  const absHariIni=data.absensi.filter(a=>a.tanggal===td&&bawahan.some(b=>b.id===a.user_id));
+  c.innerHTML=`
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-5 anim-fade">
+      <h3 class="font-700 text-sm text-slate-700 mb-4">Kehadiran Tim Hari Ini</h3>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Jabatan</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Status</th></tr></thead>
+      <tbody>${bawahan.map(bw=>{const ab=absHariIni.find(a=>a.user_id===bw.id);return`<tr><td><div class="flex items-center gap-3">${avatarHTML(bw)}<span class="font-500">${bw.nama}</span></div></td><td class="text-slate-500">${bw.jabatan}</td><td>${ab?fmtTime(ab.jam_masuk):'-'}</td><td>${ab?fmtTime(ab.jam_keluar):'-'}</td><td>${ab?`<span class="badge ${ab.status==='hadir'?'badge-success':ab.status==='terlambat'?'badge-warning':'badge-danger'}">${ab.status==='hadir'?'Hadir':ab.status==='terlambat'?'Terlambat':'Alpha'}</span>`:'<span class="badge badge-gray">Belum</span>'}</td></tr>`}).join('')}</tbody></table></div>
+    </div>`;
+}
+
+function renderAbsensiAdmin(c,td){
+  const karyawanList=data.users.filter(x=>x.role!=='admin');
+  const absHariIni=data.absensi.filter(a=>a.tanggal===td);
+  const hadir=absHariIni.filter(a=>a.status==='hadir').length;
+  const terlambat=absHariIni.filter(a=>a.status==='terlambat').length;
+  const alpha=absHariIni.filter(a=>a.status==='alpha').length;
+  const belum=karyawanList.length-hadir-terlambat-alpha;
+
+  c.innerHTML=`
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div class="stat-card anim-fade"><div class="text-2xl font-800 text-emerald-600">${hadir}</div><div class="text-slate-400 text-xs mt-1">Hadir</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.05s"><div class="text-2xl font-800 text-amber-500">${terlambat}</div><div class="text-slate-400 text-xs mt-1">Terlambat</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.1s"><div class="text-2xl font-800 text-red-500">${alpha}</div><div class="text-slate-400 text-xs mt-1">Alpha</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.15s"><div class="text-2xl font-800 text-slate-400">${belum}</div><div class="text-slate-400 text-xs mt-1">Belum Absen</div></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.2s">
+      <div class="flex items-center justify-between mb-4"><h3 class="font-700 text-sm text-slate-700">Rekap Kehadiran Hari Ini</h3><input type="date" id="absFilterDate" value="${td}" class="form-input w-auto text-sm" onchange="filterAbsAdmin()"></div>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Departemen</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Status</th></tr></thead>
+      <tbody id="absAdminBody">${renderAbsAdminRows(td,karyawanList)}</tbody></table></div>
+    </div>`;
+}
+
+function renderAbsAdminRows(date,list){
+  const abs=data.absensi.filter(a=>a.tanggal===date);
+  return list.map(u=>{const ab=abs.find(a=>a.user_id===u.id);return`<tr><td><div class="flex items-center gap-3">${avatarHTML(u)}<span class="font-500">${u.nama}</span></div></td><td class="text-slate-500">${u.departemen}</td><td>${ab?fmtTime(ab.jam_masuk):'-'}</td><td>${ab?fmtTime(ab.jam_keluar):'-'}</td><td>${ab?`<span class="badge ${ab.status==='hadir'?'badge-success':ab.status==='terlambat'?'badge-warning':'badge-danger'}">${ab.status==='hadir'?'Hadir':ab.status==='terlambat'?'Terlambat':'Alpha'}</span>`:'<span class="badge badge-gray">Belum</span>'}</td></tr>`}).join('');
+}
+function filterAbsAdmin(){
+  const d=document.getElementById('absFilterDate').value;
+  const list=data.users.filter(x=>x.role!=='admin');
+  document.getElementById('absAdminBody').innerHTML=renderAbsAdminRows(d,list);
+}
+
+function doClockIn(){
+  const now=new Date();const td=getToday();
+  const jm=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const late=now.getHours()>=8&&now.getMinutes()>0;
+  data.absensi.push({id:data.absensi.length?Math.max(...data.absensi.map(a=>a.id))+1:1,user_id:currentUser.id,tanggal:td,jam_masuk:jm,jam_keluar:'-',status:late?'terlambat':'hadir'});
+  saveData();showToast('Clock in berhasil! Selamat bekerja.','success');renderApp();
+}
+function doClockOut(){
+  const now=new Date();const td=getToday();
+  const jk=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const rec=data.absensi.find(a=>a.user_id===currentUser.id&&a.tanggal===td);
+  if(rec){rec.jam_keluar=jk;saveData();showToast('Clock out berhasil! Istirahat yang cukup.','success');renderApp()}
+}
+
+/* =============================================
+   CUTI & IZIN
+============================================= */
+function renderCuti(c){
+  const u=currentUser;
+  if(u.role==='karyawan')return renderCutiKaryawan(c);
+  if(u.role==='atasan')return renderCutiAtasan(c);
+  return renderCutiAdmin(c);
+}
+
+function renderCutiKaryawan(c){
+  const myCuti=data.cuti.filter(x=>x.user_id===u.id).sort((a,b)=>b.id-a.id);
+  c.innerHTML=`
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade">
+          <h3 class="font-700 text-sm text-slate-700 mb-4">Riwayat Pengajuan Cuti/Izin</h3>
+          <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Jenis</th><th>Tanggal</th><th>Durasi</th><th>Status</th></tr></thead>
+          <tbody>${myCuti.length?myCuti.map(cr=>`<tr><td class="font-500">${cr.jenis}</td><td>${fmtDate(cr.tgl_mulai)}${cr.tgl_mulai!==cr.tgl_selesai?' — '+fmtDate(cr.tgl_selesai):''}</td><td>${daysBetween(cr.tgl_mulai,cr.tgl_selesai)} hari</td><td><span class="badge ${cr.status==='disetujui'?'badge-success':cr.status==='ditolak'?'badge-danger':'badge-warning'}">${cr.status==='disetujui'?'Disetujui':cr.status==='ditolak'?'Ditolak':'Menunggu'}</span></td></tr>`).join(''):'<tr><td colspan="4" class="text-center text-slate-400 py-8">Belum ada pengajuan</td></tr>'}</tbody></table></div>
+        </div>
+      </div>
+      <div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.1s">
+          <h3 class="font-700 text-sm text-slate-700 mb-4">Ajukan Cuti/Izin</h3>
+          <form id="cutiForm" onsubmit="submitCuti(event)">
+            <div class="mb-3"><label class="form-label">Jenis</label><select class="form-input" name="jenis" required><option value="Cuti Tahunan">Cuti Tahunan</option><option value="Izin Sakit">Izin Sakit</option><option value="Izin Pribadi">Izin Pribadi</option><option value="Cuti Melahirkan">Cuti Melahirkan</option></select></div>
+            <div class="mb-3"><label class="form-label">Tanggal Mulai</label><input type="date" class="form-input" name="tgl_mulai" required min="${getToday()}"></div>
+            <div class="mb-3"><label class="form-label">Tanggal Selesai</label><input type="date" class="form-input" name="tgl_selesai" required min="${getToday()}"></div>
+            <div class="mb-4"><label class="form-label">Alasan</label><textarea class="form-input" name="alasan" rows="3" required placeholder="Jelaskan alasan Anda..."></textarea></div>
+            <button type="submit" class="btn btn-primary w-full justify-center"><i class="fa-solid fa-paper-plane"></i>Kirim Pengajuan</button>
+          </form>
+          <div class="mt-4 p-3 bg-teal-50 rounded-xl"><div class="text-xs text-teal-700 font-600">Sisa Cuti Tahunan</div><div class="text-2xl font-900 text-teal-800 mt-1">${u.sisa_cuti} <span class="text-sm font-500 text-teal-600">hari</span></div></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function submitCuti(e){
+  e.preventDefault();const f=new FormData(e.target);
+  const tgl_mulai=f.get('tgl_mulai'),tgl_selesai=f.get('tgl_selesai');
+  if(tgl_selesai<tgl_mulai){showToast('Tanggal selesai tidak boleh sebelum tanggal mulai.','error');return}
+  const dur=daysBetween(tgl_mulai,tgl_selesai);
+  const jenis=f.get('jenis');
+  if(jenis==='Cuti Tahunan'&&dur>currentUser.sisa_cuti){showToast(`Sisa cuti tidak cukup. Anda hanya memiliki ${currentUser.sisa_cuti} hari.`,'error');return}
+  data.cuti.push({id:data.cuti.length?Math.max(...data.cuti.map(x=>x.id))+1:1,user_id:currentUser.id,jenis,tgl_mulai,tgl_selesai,alasan:f.get('alasan'),status:'pending',approved_by:null,catatan:''});
+  saveData();showToast('Pengajuan cuti berhasil dikirim!','success');renderApp();
+}
+
+function renderCutiAtasan(c){
+  const bawahan=data.users.filter(x=>x.atasan_id===currentUser.id);
+  const pending=data.cuti.filter(x=>x.status==='pending'&&bawahan.some(b=>b.id===x.user_id)).sort((a,b)=>a.tgl_mulai.localeCompare(b.tgl_mulai));
+  const history=data.cuti.filter(x=>x.status!=='pending'&&bawahan.some(b=>b.id===x.user_id)).sort((a,b)=>b.id-a.id).slice(0,10);
+
+  c.innerHTML=`
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-5 anim-fade">
+      <div class="flex items-center gap-3 mb-4"><h3 class="font-700 text-sm text-slate-700">Menunggu Persetujuan</h3><span class="badge badge-warning">${pending.length}</span></div>
+      ${pending.length?`<div class="space-y-3">${pending.map(cr=>{const usr=data.users.find(x=>x.id===cr.user_id);return`
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-amber-50/50 rounded-xl border border-amber-100">
+          <div class="flex items-center gap-3 flex-1">${avatarHTML(usr)}<div><div class="font-600 text-sm">${usr?usr.nama:'-'}</div><div class="text-xs text-slate-400">${cr.jenis} — ${fmtDate(cr.tgl_mulai)}${cr.tgl_mulai!==cr.tgl_selesai?' s/d '+fmtDate(cr.tgl_selesai):''} (${daysBetween(cr.tgl_mulai,cr.tgl_selesai)} hari)</div><div class="text-xs text-slate-500 mt-0.5">${cr.alasan}</div></div></div>
+          <div class="flex gap-2 sm:flex-shrink-0"><button class="btn btn-sm btn-success" onclick="approveCuti(${cr.id},'disetujui')"><i class="fa-solid fa-check"></i>Setujui</button><button class="btn btn-sm btn-danger" onclick="showRejectModal(${cr.id})"><i class="fa-solid fa-xmark"></i>Tolak</button></div>
+        </div>`}).join('')}</div>`:'<p class="text-sm text-slate-400 text-center py-8">Tidak ada pengajuan yang menunggu persetujuan</p>'}
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.1s">
+      <h3 class="font-700 text-sm text-slate-700 mb-4">Riwayat</h3>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Jenis</th><th>Tanggal</th><th>Status</th></tr></thead>
+      <tbody>${history.length?history.map(cr=>{const usr=data.users.find(x=>x.id===cr.user_id);return`<tr><td class="font-500">${usr?usr.nama:'-'}</td><td>${cr.jenis}</td><td>${fmtDate(cr.tgl_mulai)}</td><td><span class="badge ${cr.status==='disetujui'?'badge-success':'badge-danger'}">${cr.status==='disetujui'?'Disetujui':'Ditolak'}</span></td></tr>`}).join(''):'<tr><td colspan="4" class="text-center text-slate-400 py-8">Belum ada riwayat</td></tr>'}</tbody></table></div>
+    </div>`;
+}
+
+function renderCutiAdmin(c){
+  const allCuti=[...data.cuti].sort((a,b)=>b.id-a.id);
+  c.innerHTML=`
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <h3 class="font-700 text-sm text-slate-700">Semua Pengajuan Cuti/Izin</h3>
+        <div class="flex gap-2">
+          <select id="cutiFilterStatus" class="form-input w-auto text-sm" onchange="filterCutiAdmin()"><option value="">Semua Status</option><option value="pending">Menunggu</option><option value="disetujui">Disetujui</option><option value="ditolak">Ditolak</option></select>
+        </div>
+      </div>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Departemen</th><th>Jenis</th><th>Tanggal</th><th>Durasi</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody id="cutiAdminBody">${renderCutiAdminRows(allCuti)}</tbody></table></div>
+    </div>`;
+}
+function renderCutiAdminRows(list){
+  return list.map(cr=>{const usr=data.users.find(x=>x.id===cr.user_id);return`<tr>
+    <td><div class="flex items-center gap-2">${avatarHTML(usr,'w-7 h-7 text-[10px]')}<span class="font-500">${usr?usr.nama:'-'}</span></div></td>
+    <td class="text-slate-500">${usr?usr.departemen:'-'}</td><td>${cr.jenis}</td>
+    <td>${fmtDate(cr.tgl_mulai)}${cr.tgl_mulai!==cr.tgl_selesai?'<br><span class="text-slate-400 text-xs">s/d '+fmtDate(cr.tgl_selesai)+'</span>':''}</td>
+    <td>${daysBetween(cr.tgl_mulai,cr.tgl_selesai)} hr</td>
+    <td><span class="badge ${cr.status==='disetujui'?'badge-success':cr.status==='ditolak'?'badge-danger':'badge-warning'}">${cr.status==='disetujui'?'Disetujui':cr.status==='ditolak'?'Ditolak':'Menunggu'}</span></td>
+    <td>${cr.status==='pending'?`<div class="flex gap-1"><button class="btn btn-sm btn-success" onclick="approveCuti(${cr.id},'disetujui')"><i class="fa-solid fa-check"></i></button><button class="btn btn-sm btn-danger" onclick="showRejectModal(${cr.id})"><i class="fa-solid fa-xmark"></i></button></div>`:'-'}</td>
+  </tr>`}).join('');
+}
+function filterCutiAdmin(){
+  const s=document.getElementById('cutiFilterStatus').value;
+  let list=[...data.cuti].sort((a,b)=>b.id-a.id);
+  if(s)list=list.filter(x=>x.status===s);
+  document.getElementById('cutiAdminBody').innerHTML=renderCutiAdminRows(list);
+}
+
+function approveCuti(id,status){
+  const cr=data.cuti.find(x=>x.id===id);if(!cr)return;
+  cr.status=status;cr.approved_by=currentUser.id;
+  if(status==='disetujui'){
+    const usr=data.users.find(x=>x.id===cr.user_id);
+    if(usr&&cr.jenis==='Cuti Tahunan'){usr.sisa_cuti=Math.max(0,usr.sisa_cuti-daysBetween(cr.tgl_mulai,cr.tgl_selesai))}
+  }
+  saveData();showToast(status==='disetujui'?'Cuti berhasil disetujui.':'Cuti ditolak.',status==='disetujui'?'success':'info');renderApp();
+}
+function showRejectModal(id){
+  showModal(`<h3 class="font-700 text-lg mb-1">Tolak Pengajuan Cuti</h3><p class="text-sm text-slate-400 mb-4">Berikan alasan penolakan</p>
+    <textarea id="rejectNote" class="form-input mb-4" rows="3" placeholder="Alasan penolakan..."></textarea>
+    <div class="flex gap-2 justify-end"><button class="btn btn-outline" onclick="hideModal()">Batal</button><button class="btn btn-danger" onclick="doReject(${id})"><i class="fa-solid fa-xmark"></i>Tolak</button></div>`);
+}
+function doReject(id){
+  const cr=data.cuti.find(x=>x.id===id);if(!cr)return;
+  cr.status='ditolak';cr.approved_by=currentUser.id;cr.catatan=document.getElementById('rejectNote').value;
+  saveData();hideModal();showToast('Pengajuan cuti ditolak.','info');renderApp();
+}
+
+/* =============================================
+   PENGAJIAN
+============================================= */
+function renderPenggajian(c){
+  const u=currentUser;
+  if(u.role==='admin')return renderPenggajianAdmin(c);
+  return renderPenggajianKaryawan(c,u);
+}
+
+function calcGaji(user,month,year){
+  const gp=user.gaji_pokok;
+  const tunjangan=Math.round(gp*.2);
+  const absen=data.absensi.filter(a=>a.user_id===user.id&&a.tanggal.startsWith(`${year}-${String(month).padStart(2,'0')}`));
+  const alpha=absen.filter(a=>a.status==='alpha').length;
+  const potongan_alpha=Math.round(gp/22*alpha);
+  const bpjs=Math.round(gp*.01);
+  const pajak=Math.round(gp*.05);
+  const total=gp+tunjangan-potongan_alpha-bpjs-pajak;
+  return{gp,tunjangan,potongan_alpha,alpha,bpjs,pajak,total};
+}
+
+function renderPenggajianKaryawan(c,u){
+  const now=new Date();const month=now.getMonth()+1;const year=now.getFullYear();
+  const g=calcGaji(u,month,year);
+  c.innerHTML=`
+    <div class="max-w-2xl mx-auto">
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden anim-fade">
+        <div class="bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white">
+          <div class="flex items-center justify-between"><div><p class="text-teal-100 text-sm">Slip Gaji</p><h3 class="text-xl font-800 mt-1">${u.nama}</h3><p class="text-teal-200 text-sm mt-0.5">${u.jabatan} — ${u.departemen}</p></div>
+          <div class="text-right"><p class="text-teal-100 text-xs">Periode</p><p class="font-700">${now.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}</p></div></div>
+        </div>
+        <div class="p-6">
+          <table class="w-full text-sm"><tbody>
+            <tr class="border-b border-slate-100"><td class="py-3 text-slate-500">Gaji Pokok</td><td class="py-3 text-right font-600">${fmtCurrency(g.gp)}</td></tr>
+            <tr class="border-b border-slate-100"><td class="py-3 text-slate-500">Tunjangan (20%)</td><td class="py-3 text-right font-600 text-emerald-600">+ ${fmtCurrency(g.tunjangan)}</td></tr>
+            <tr class="border-b border-slate-100"><td class="py-3 text-slate-500">Potongan Alpha (${g.alpha} hari)</td><td class="py-3 text-right font-600 text-red-500">- ${fmtCurrency(g.potongan_alpha)}</td></tr>
+            <tr class="border-b border-slate-100"><td class="py-3 text-slate-500">BPJS (1%)</td><td class="py-3 text-right font-600 text-red-500">- ${fmtCurrency(g.bpjs)}</td></tr>
+            <tr class="border-b border-slate-100"><td class="py-3 text-slate-500">Pajak (5%)</td><td class="py-3 text-right font-600 text-red-500">- ${fmtCurrency(g.pajak)}</td></tr>
+            <tr><td class="py-4 text-lg font-800 text-slate-800">Take Home Pay</td><td class="py-4 text-right text-xl font-900 text-teal-700">${fmtCurrency(g.total)}</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderPenggajianAdmin(c){
+  const now=new Date();const month=now.getMonth()+1;const year=now.getFullYear();
+  const list=data.users.filter(x=>x.role!=='admin');
+  let totalGaji=0;
+  const rows=list.map(u=>{
+    const g=calcGaji(u,month,year);totalGaji+=g.total;
+    return`<tr><td><div class="flex items-center gap-2">${avatarHTML(u,'w-7 h-7 text-[10px]')}<span class="font-500">${u.nama}</span></div></td><td class="text-slate-500">${u.departemen}</td><td>${fmtCurrency(g.gp)}</td><td class="text-emerald-600">+${fmtCurrency(g.tunjangan)}</td><td class="text-red-500">-${fmtCurrency(g.potongan_alpha+g.bpjs+g.pajak)}</td><td class="font-700">${fmtCurrency(g.total)}</td></tr>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+      <div class="stat-card anim-fade"><div class="text-xs text-slate-400 mb-1">Total Karyawan</div><div class="text-2xl font-800">${list.length}</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.05s"><div class="text-xs text-slate-400 mb-1">Total Gaji Dibayarkan</div><div class="text-xl font-800 text-teal-700">${fmtCurrency(totalGaji)}</div></div>
+      <div class="stat-card anim-fade" style="animation-delay:.1s"><div class="text-xs text-slate-400 mb-1">Periode</div><div class="text-lg font-700">${now.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}</div></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade" style="animation-delay:.15s">
+      <h3 class="font-700 text-sm text-slate-700 mb-4">Rekap Penggajian</h3>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Departemen</th><th>Gaji Pokok</th><th>Tunjangan</th><th>Potongan</th><th>Total</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr class="bg-slate-50"><td colspan="5" class="py-3 font-700 text-sm text-right pr-4">Total Pembayaran</td><td class="py-3 font-900 text-teal-700">${fmtCurrency(totalGaji)}</td></tr></tfoot></table></div>
+    </div>`;
+}
+
+/* =============================================
+   DATA KARYAWAN (ADMIN)
+============================================= */
+function renderKaryawan(c){
+  const list=data.users.filter(x=>x.role!=='admin');
+  c.innerHTML=`
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 anim-fade">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <h3 class="font-700 text-sm text-slate-700">Daftar Karyawan</h3>
+        <button class="btn btn-primary btn-sm" onclick="showAddKaryawanModal()"><i class="fa-solid fa-plus"></i>Tambah Karyawan</button>
+      </div>
+      <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Karyawan</th><th>Departemen</th><th>Jabatan</th><th>Role</th><th>Gaji Pokok</th><th>Sisa Cuti</th><th>Aksi</th></tr></thead>
+      <tbody>${list.map(u=>`<tr>
+        <td><div class="flex items-center gap-3">${avatarHTML(u)}<div><div class="font-600">${u.nama}</div><div class="text-xs text-slate-400">${u.email}</div></div></div></td>
+        <td class="text-slate-500">${u.departemen}</td><td>${u.jabatan}</td>
+        <td><span class="badge ${u.role==='atasan'?'badge-info':u.role==='karyawan'?'badge-gray':'badge-warning'}">${roleLabel(u.role)}</span></td>
+        <td class="font-600">${fmtCurrency(u.gaji_pokok)}</td>
+        <td>${u.sisa_cuti} hari</td>
+        <td><button class="btn btn-sm btn-outline" onclick="showDetailKaryawan(${u.id})"><i class="fa-solid fa-eye"></i></button></td>
+      </tr>`).join('')}</tbody></table></div>
+    </div>`;
+}
+
+function showDetailKaryawan(id){
+  const u=data.users.find(x=>x.id===id);if(!u)return;
+  const atasan=data.users.find(x=>x.id===u.atasan_id);
+  const absenCount=data.absensi.filter(a=>a.user_id===u.id).length;
+  const hadirCount=data.absensi.filter(a=>a.user_id===u.id&&a.status!=='alpha').length;
+  const cutiCount=data.cuti.filter(x=>x.user_id===u.id).length;
+  showModal(`
+    <div class="text-center mb-4">${avatarHTML(u,'w-16 h-16 text-2xl rounded-2xl mx-auto')}</div>
+    <h3 class="font-800 text-lg text-center mb-1">${u.nama}</h3>
+    <p class="text-sm text-slate-400 text-center mb-5">${u.jabatan} — ${u.departemen}</p>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="bg-slate-50 rounded-xl p-3 text-center"><div class="text-lg font-800">${absenCount}</div><div class="text-xs text-slate-400">Total Absen</div></div>
+      <div class="bg-emerald-50 rounded-xl p-3 text-center"><div class="text-lg font-800 text-emerald-700">${hadirCount}</div><div class="text-xs text-emerald-600">Hadir</div></div>
+      <div class="bg-amber-50 rounded-xl p-3 text-center"><div class="text-lg font-800 text-amber-700">${u.sisa_cuti}</div><div class="text-xs text-amber-600">Sisa Cuti</div></div>
+      <div class="bg-teal-50 rounded-xl p-3 text-center"><div class="text-lg font-800 text-teal-700">${cutiCount}</div><div class="text-xs text-teal-600">Pengajuan Cuti</div></div>
+    </div>
+    <div class="space-y-2 text-sm mb-5">
+      <div class="flex justify-between"><span class="text-slate-400">Email</span><span class="font-500">${u.email}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Role</span><span class="badge ${u.role==='atasan'?'badge-info':'badge-gray'}">${roleLabel(u.role)}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Gaji Pokok</span><span class="font-600">${fmtCurrency(u.gaji_pokok)}</span></div>
+      ${atasan?`<div class="flex justify-between"><span class="text-slate-400">Atasan</span><span class="font-500">${atasan.nama}</span></div>`:''}
+    </div>
+    <button class="btn btn-outline w-full justify-center" onclick="hideModal()">Tutup</button>`);
+}
+
+function showAddKaryawanModal(){
+  const atasanList=data.users.filter(x=>x.role==='atasan');
+  showModal(`
+    <h3 class="font-700 text-lg mb-4">Tambah Karyawan Baru</h3>
+    <form id="addKaryawanForm" onsubmit="doAddKaryawan(event)">
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="form-label">Nama Lengkap</label><input class="form-input" name="nama" required></div>
+        <div><label class="form-label">Email</label><input class="form-input" name="email" type="email" required></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="form-label">Password</label><input class="form-input" name="password" required minlength="6"></div>
+        <div><label class="form-label">Role</label><select class="form-input" name="role"><option value="karyawan">Karyawan</option><option value="atasan">Atasan</option></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="form-label">Departemen</label><select class="form-input" name="departemen"><option>Teknologi</option><option>Desain</option><option>Marketing</option><option>Keuangan</option><option>HRD</option></select></div>
+        <div><label class="form-label">Jabatan</label><input class="form-input" name="jabatan" required></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div><label class="form-label">Gaji Pokok</label><input class="form-input" name="gaji_pokok" type="number" required min="0"></div>
+        <div><label class="form-label">Atasan</label><select class="form-input" name="atasan_id"><option value="">-- Tidak Ada --</option>${atasanList.map(a=>`<option value="${a.id}">${a.nama}</option>`).join('')}</select></div>
+      </div>
+      <div class="flex gap-2 justify-end"><button type="button" class="btn btn-outline" onclick="hideModal()">Batal</button><button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i>Tambah</button></div>
+    </form>`);
+}
+
+function doAddKaryawan(e){
+  e.preventDefault();const f=new FormData(e.target);
+  const email=f.get('email');
+  if(data.users.some(u=>u.email===email)){showToast('Email sudah terdaftar!','error');return}
+  const newId=Math.max(...data.users.map(u=>u.id))+1;
+  data.users.push({id:newId,nama:f.get('nama'),email,password:f.get('password'),role:f.get('role'),jabatan:f.get('jabatan'),departemen:f.get('departemen'),gaji_pokok:Number(f.get('gaji_pokok')),atasan_id:f.get('atasan_id')?Number(f.get('atasan_id')):null,sisa_cuti:12});
+  saveData();hideModal();showToast('Karyawan berhasil ditambahkan!','success');renderApp();
+}
+
+/* =============================================
+   MODAL & TOAST
+============================================= */
+function showModal(html){document.getElementById('modalBox').innerHTML=html;document.getElementById('modalOverlay').classList.add('active')}
+function hideModal(){document.getElementById('modalOverlay').classList.remove('active')}
+function showToast(msg,type='info'){
+  const t=document.createElement('div');t.className=`toast toast-${type}`;
+  const icon=type==='success'?'fa-circle-check':type==='error'?'fa-circle-xmark':'fa-circle-info';
+  t.innerHTML=`<i class="fa-solid ${icon}"></i><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(30px)';t.style.transition='all .3s';setTimeout(()=>t.remove(),300)},3500);
+}
+
+/* =============================================
+   INISIALISASI
+============================================= */
+(function init(){
+  loadData();
+  const sid=sessionStorage.getItem('nexahr_session');
+  if(sid){const u=data.users.find(x=>x.id===Number(sid));if(u){currentUser=u;showApp();return}}
+})();
+</script>
+</body>
+</html>
